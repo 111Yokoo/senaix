@@ -2,40 +2,49 @@ import React, { useState } from "react";
 import {
   Text,
   TextInput,
-  View, TouchableOpacity, StyleSheet, Alert
+  View,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import MyButton from "../components/MyButton";
 import { useNavigation } from "@react-navigation/native";
 import { api } from "../services/api";
 
+
 export default function SignUp() {
   const navigation = useNavigation();
-  const [userName, setUserName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+
   async function handleSubmit() {
     setError("");
-    if (!email.trim() || !userName.trim() || !password.trim()) {
+    if (!email.trim() || !username.trim() || !password.trim()) {
       setError("Por favor, preencha todos os campos!");
       return;
     }
     try {
-      await api.post("registrar", {
+      await api.post("register", {
         email,
         username,
-        password
+        password,
       });
-      Alert.alert("Sucesso", "Usuários criado com sucesso");
-    } catch (err) {
-      if(err.response){
-        setError(err.response.data.message);
+      Alert.alert("Sucesso", "Usuário criado com sucesso!");
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data.message);
+      } else {
+        setError("Não foi possível se conectar com o servidor");
       }
-      setError("Não foi possível se conectar com o servidor");
     }
   }
+
+
   return (
     <View style={style.container}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -43,23 +52,49 @@ export default function SignUp() {
       </TouchableOpacity>
       <View>
         <Text style={style.title}>Estamos quase lá.</Text>
-        <Text style={style.subtitle}>Faça seu login para começar a utilizar o app.</Text>
+        <Text style={style.subtitle}>
+          Faça seu cadastro para começar a utilizar o app.
+        </Text>
       </View>
       <View style={{ gap: 16 }}>
         <View style={style.inputBox}>
           <Feather name="user" size={24} color="#8a8787" />
-          <TextInput placeholder="Digite seu nome" placeholderTextColor="#8a8787"  style={style.input} onChangeText={(text) => setUserName} />
+          <TextInput
+            style={style.input}
+            placeholder="Digite seu nome"
+            placeholderTextColor="#8a8787"
+            value={username}
+            onChangeText={(text) => setUsername(text)}
+          />
         </View>
         <View style={style.inputBox}>
           <Feather name="mail" size={24} color="#8a8787" />
-          <TextInput placeholder="Digite seu email" placeholderTextColor="#8a8787" keyboardType="email-address" style={style.input} onChangeText={(text) => setEmail} />
+          <TextInput
+            style={style.input}
+            placeholder="Digite seu email"
+            placeholderTextColor="#8a8787"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+          />
         </View>
         <View style={style.inputBox}>
-          <Feather name="lock" size={32} color="#8a8787" />
-          <TextInput placeholder="Digite sua senha" placeholderTextColor="#8a8787" secureTextEntry style={style.input} onChangeText={(text) => setPassword}/>
+          <Feather name="lock" size={24} color="#8a8787" />
+          <TextInput
+            style={style.input}
+            placeholder="Digite sua senha"
+            placeholderTextColor="#8a8787"
+            secureTextEntry
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
         </View>
         {error && <Text style={style.erro}>{error}</Text>}
-        <MyButton text="Login" onPress={() => handleSubmit()} style={{ width: "100%" }} />
+        <MyButton
+          onPress={() => handleSubmit()}
+          text="Cadastrar"
+          style={{ width: "100%" }}
+        />
       </View>
     </View>
   );
@@ -69,7 +104,7 @@ export default function SignUp() {
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "streach",
+    alignItems: "stretch",
     justifyContent: "space-between",
     padding: 16,
   },
