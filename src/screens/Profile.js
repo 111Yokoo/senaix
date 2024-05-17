@@ -25,8 +25,31 @@ export default function Profile() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [editable, setEditable] = useState(false);
   const [photoUrl, setPhotoUrl] = useState("");
+  const [editable, setEditable] = useState(false);
+  const {updateUser, signOut} = useAuth();
+
+  async function handleSubmit(){
+    setError("");
+    if(!email.trim() || !username.trim || !password.trim()) {
+      setError("Prencha todos os campos");
+      return;
+    }
+    try{
+      await api.patch("profile",{
+        email,
+        username,
+        password,
+      })
+      Alert.alert("Sucesso", "Usuário atualizado com sucesso")
+      setEditable(false)
+    }catch(error){
+      if (error.response){
+      setError(error.response.data.message);
+    } else {
+      setError("Não foi possivel se comunicar com o servidor. ");
+    }
+  }}
 
   async function pickImage() {
     let permissionResult =
@@ -114,20 +137,23 @@ export default function Profile() {
   }
 
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-        try{
-            const {data} = await api.get("/profile");
-            setEmail(data.email);
-            setUsername(data.username);
-            setPhotoUrl(data.photoUrl);
-        }catch(error){
-            console.log(error);
-        }
-    }
-    fetchUserProfile();
-  })
+  useEffect(()=>{
+    const fetchUserProfile = async () =>{
+      try {
+        const {data} = await api.get("/profile");
+        setEmail(data.email);
+        setUsername(data.username);
+        setPhotoUrl(data.photoUrl);
 
+      }catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUserProfile();
+  },[])
+
+
+  
   return (
     <ScrollView contentContainerStyle={style.container}>
       <View style={{ backgroundColor: "#1B1B1F", alignItems: "center" }}>
@@ -138,16 +164,20 @@ export default function Profile() {
           <Text style={{ fontSize: 28, fontWeight: "600", color: "#ffffff" }}>
             Perfil
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => signOut()}>
             <MaterialCommunityIcons name="logout" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
-         <View style={style.profileImageContainer}>
-            <Image key={photoUrl} style={style.profileImage}  source={photoUrl ? { uri: `http://10.0.2.2:3333/${photoUrl}`} : UserPhoto}/>
-          <TouchableOpacity style={style.cameraButton} onPress={() => pickImage()}>
+        <View style={style.profileImageContainer}>
+          <Image
+          key={photoUrl}
+          style={style.profileImage}
+          source={photoUrl ? {uri: `http://10.0.2.2:3333/${photoUrl}`}:UserPhoto }
+          />
+          <TouchableOpacity style={style.cameraButton} onPress={()=> pickImage()} >
             <MaterialIcons name="camera-alt" size={32} color="white" />
           </TouchableOpacity>
-        </View>
+        </View> 
       </View>
       <Text style={style.username}>{username}</Text>
 
@@ -177,8 +207,8 @@ export default function Profile() {
             <Feather name="user" size={24} color="#8a8787" />
             <TextInput
               value={username}
-              style={style.input}
               editable={editable}
+              style={style.input}
               onChangeText={(text) => setUsername(text)}
               placeholderTextColor="#AEAEB3"
             />
@@ -187,39 +217,39 @@ export default function Profile() {
             <Feather name="mail" size={24} color="#8a8787" />
             <TextInput
               value={email}
-              style={style.input}
               editable={editable}
+              style={style.input}
               onChangeText={(text) => setEmail(text)}
               placeholderTextColor="#AEAEB3"
             />
           </View>
           <View>
             {editable && (
-            <View style={style.inputBox}>
+              <View style={style.inputBox}>
                 <Feather name="lock" size={24} color="#8a8787" />
-                    <TextInput
-                      style={style.input}
-                      value={password}
-                      editable={editable}
-                      onChangeText={(text) => {
-                        setPassword(text);
+                  <TextInput
+                    style={style.input}
+                    value={password}
+                    editable={editable}
+                    onChangeText={(text) => {
+                      setPassword(text);
                       }}
-                      placeholderTextColor="#AEAEB3"
-                      secureTextEntry
-                      placeholder="Senha atual ou nova senha"
-                    />
-            </View>
+                    placeholderTextColor="#AEAEB3"
+                    secureTextEntry
+                    placeholder="Senha atual ou nova senha"
+                  />
+              </View>
             )}
-            
+
             <Text style={style.error}>{error}</Text>
           </View>
         </View>
-        {editable && (
+        {editable && 
             <View style={{ gap: 8, marginTop: 16, flexDirection: "row" }}>
-                <MyButton style={{ flex: 1 }} text="Cancelar" onPress={() => setEditable(false)}/>
-                <MyButton style={{ flex: 1 }} text="Salvar alterações" onPress={() => setEditable(false)}/>
+              <MyButton onPress={() => setEditable(false)} style={{ flex: 1 }} text="Cancelar"  />
+              <MyButton onPress={() => handleSubmit()} style={{ flex: 1 }} text="Salvar alterações" />
             </View>
-        )}
+        }
       </View>
     </ScrollView>
   );
